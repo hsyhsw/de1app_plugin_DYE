@@ -3266,7 +3266,7 @@ namespace eval ::dui::pages::dye_visualizer_dlg {
 		
 		set page_width [dui page width $page 0]
 		set page_height [dui page height $page 0]
-		set splits [dui page split_space 0 $page_height 0.1 0.1 0.1 0.52 0.1]
+		set splits [dui page split_space 0 $page_height 0.1 0.1 0.1 0.52 0.1 0.1]
 		
 		set i 0		
 		set y0 [lindex $splits $i]
@@ -3325,6 +3325,12 @@ namespace eval ::dui::pages::dye_visualizer_dlg {
 		dui add dbutton $page 0.9 [expr {$y1-35}] -bwidth 0.4 -bheight 100 -anchor se -tags download_by_code \
 			-style menu_dlg -label [translate "Download"]
 		
+		dui add canvas_item line $page 0.01 $y1 0.99 $y1 -style menu_dlg_sepline
+
+		set y0 $y1
+		set y1 [lindex $splits [incr i]]
+		dui add dbutton $page 0.01 $y0 0.99 $y1 -tags flow_cal_estimation_visualizer -style menu_dlg_btn \
+			-label [translate "Estimate flow calibration"] -symbol sliders-h
 		dui add canvas_item line $page 0.01 $y1 0.99 $y1 -style menu_dlg_sepline
 		
 		set y0 $y1
@@ -3419,6 +3425,7 @@ namespace eval ::dui::pages::dye_visualizer_dlg {
 				download_ratio* download_profile* download_by_code* download_by_what*}
 			dui item enable_or_disable [expr {$data(shot_clock) ne {} && $data(repo_link) ne {}}] $page_to_show browse*
 		}
+		dui item enable_or_disable [expr {$data(visualizer_id) ne {}}] $page_to_show flow_cal_estimation_visualizer*
 		
 		if { $data(repo_link) eq {} } {
 			dui item config $page_to_show upload-lbl -text [translate "Upload shot"]
@@ -3724,6 +3731,19 @@ namespace eval ::dui::pages::dye_visualizer_dlg {
 		variable data
 		if { $data(repo_link) ne {} } {
 			web_browser $data(repo_link)
+			dui page close_dialog {} {} {}
+		}
+	}
+
+	proc flow_cal_estimation_visualizer {} {
+		variable data
+		set binder_base "https://mybinder.org/v2/gh/hsyhsw/de1-flow-calibration-estimation/HEAD?urlpath="
+		if { $data(visualizer_id) ne {} } {
+			set binder_args "notebooks/flowcorrection_nb.ipynb?autorun=true&verbose=True&shot_id='$data(visualizer_id)'"
+			set args_encoded [percent20encode $binder_args]
+			regsub -all "&" $args_encoded "%26" args_encoded
+			regsub -all {=} $args_encoded "%3D" args_encoded
+			web_browser "$binder_base$args_encoded"
 			dui page close_dialog {} {} {}
 		}
 	}
