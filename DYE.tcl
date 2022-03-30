@@ -3735,16 +3735,19 @@ namespace eval ::dui::pages::dye_visualizer_dlg {
 		}
 	}
 
+	proc read_shot_flow_cal_value { shot_clock } {
+		set shot_file_path [::plugins::SDB::shots rel_path 1 "clock = $shot_clock"]
+		array set shot_raw [read_file [homedir]/$shot_file_path]
+		array set shot_settings_raw $shot_raw(settings)
+		return [ifexists shot_settings_raw(calibration_flow_multiplier) 0.0]
+	}
+
 	proc flow_cal_estimation_visualizer {} {
 		variable data
 		set binder_url "https://mybinder.org/v2/gh/hsyhsw/de1-flow-calibration-estimation/HEAD?urlpath="
 		if { $data(visualizer_id) ne {} } {
 			set binder_args "notebooks/flowcorrection_nb.ipynb?autorun=true&verbose=True&shot_id='$data(visualizer_id)'"
-			if { [ifexists ::settings(calibration_flow_multiplier) 0.0] != 0.0 } {
-				set binder_args "$binder_args&current_calibration=$::settings(calibration_flow_multiplier)"
-			} else {
-				set binder_args "$binder_args&current_calibration=0.0"
-			}
+			set binder_args "$binder_args&current_calibration=[read_shot_flow_cal_value $data(shot_clock)]"
 			set args_encoded [percent20encode $binder_args]
 			regsub -all "&" $args_encoded "%26" args_encoded
 			regsub -all {=} $args_encoded "%3D" args_encoded
