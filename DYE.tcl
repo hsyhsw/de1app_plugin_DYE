@@ -3737,13 +3737,18 @@ namespace eval ::dui::pages::dye_visualizer_dlg {
 
 	proc flow_cal_estimation_visualizer {} {
 		variable data
-		set binder_base "https://mybinder.org/v2/gh/hsyhsw/de1-flow-calibration-estimation/HEAD?urlpath="
+		set binder_url "https://mybinder.org/v2/gh/hsyhsw/de1-flow-calibration-estimation/HEAD?urlpath="
 		if { $data(visualizer_id) ne {} } {
 			set binder_args "notebooks/flowcorrection_nb.ipynb?autorun=true&verbose=True&shot_id='$data(visualizer_id)'"
+			if { [ifexists ::settings(calibration_flow_multiplier) 0.0] != 0.0 } {
+				set binder_args "$binder_args&current_calibration=$::settings(calibration_flow_multiplier)"
+			} else {
+				set binder_args "$binder_args&current_calibration=0.0"
+			}
 			set args_encoded [percent20encode $binder_args]
 			regsub -all "&" $args_encoded "%26" args_encoded
 			regsub -all {=} $args_encoded "%3D" args_encoded
-			web_browser "$binder_base$args_encoded"
+			web_browser "$binder_url$args_encoded"
 			dui page close_dialog {} {} {}
 		}
 	}
